@@ -19,6 +19,12 @@ export async function createUser(req, res){
         || !gender || !cellPhone || !email
         || !password) return res.status(400).json({});
 
+    if (!email.endsWith("@gmail.com")) {
+        return res.status(400).json({
+            'msg': 'Error: Email must be a Gmail account'
+        });
+    }
+
     let user;
     try{
         user = await UserModel.findOne({email});
@@ -114,5 +120,31 @@ export async function loginUser(req, res){
         return res.status(500).json({
             'msg': `Invalid password!`,
         })
+    }
+}
+
+export async function getUserEmailById(req, res) {
+    const userId = req.params.id;
+    if (!userId) {
+        return res.status(400).json({
+            'msg': 'No user ID provided'
+        });
+    }
+    try {
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                'msg': `User not found with ID: ${userId}`
+            });
+        }
+        return res.status(200).json({
+            'msg': 'User email retrieved successfully',
+            'email': user.email 
+        });
+    } catch (e) {
+        return res.status(500).json({
+            'msg': 'Error retrieving user data',
+            'error': e.message
+        });
     }
 }
