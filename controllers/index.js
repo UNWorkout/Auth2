@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import ldap from 'ldapjs';
 
 import UserModel from '../models/user.js';
 import {comparePasswords, hashPassword} from "../utils/index.js";
@@ -101,17 +102,8 @@ export async function loginUser(req, res){
             'msg': `Can not match passwords!`,
         })
     }
-
     if (comparation){
-        const token = jwt.sign({
-            id:user._id,
-        },
-            'SECRET',
-            {
-                expiresIn: 86400,
-            }
-        )
-
+        const token = jwt.sign({id:user._id,},'SECRET',{expiresIn: 86400,})
         return res.status(200).json({
             'msg': 'Authenticated',
             'token': token,
@@ -121,6 +113,35 @@ export async function loginUser(req, res){
             'msg': `Invalid password!`,
         })
     }
+    // Autenticación LDAP y token JWT
+    /*
+    try {
+        const ldapClient = ldap.createClient({ url: 'ldap://unworkout-ldap:389' });
+        const adminDn = 'cn=admin,dc=arqsoft,dc=unal,dc=edu,dc=co';
+        const adminPassword = 'admin';
+        ldapClient.bind(adminDn, adminPassword, err => {
+            if (err) {
+                return res.status(401).json({
+                    'msg': 'LDAP Authentication failed',
+                });
+            }
+            if (comparation){
+                const token = jwt.sign({id:user._id,},'SECRET',{expiresIn: 86400,})
+                return res.status(200).json({
+                    'msg': 'Authenticated',
+                    'token': token,
+                })
+            }else{
+                return res.status(500).json({
+                    'msg': `Invalid password!`,
+                })
+            }
+        });
+    } catch (e) {
+        return res.status(500).json({
+            'msg': `LDAP connection failed`,
+        });
+    }*/
 }
 
 export async function getUserEmailById(req, res) {
